@@ -32,7 +32,7 @@ class VendorListView(GenericAPIView):
                 "error_message": "Invalid Vendor ID supplied!."
             })
             serializer = self.get_serializer(obj)
-            return Response({"message": "List of vendors retrieved successfully", "data": serializer.data}, 
+            return Response({"message": "Vendor retrieved successfully", "data": serializer.data}, 
                         status=status.HTTP_200_OK)
 
     def post(self,request):
@@ -67,8 +67,60 @@ class VendorListView(GenericAPIView):
         return Response({"message": "Vendor deleted successfully"}, status=status.HTTP_200_OK)
 
 class PurchaseOrderListView(GenericAPIView):
-    queryset = PurchaseOrder.objects.all()
     serializer_class = PurchaseOrderSerializer
+    pagination_class = PageNumberPagination
+
+    def get(self,request):
+        po_id = request.query_params.get('po_id')
+        if po_id is None:
+            obj = PurchaseOrder.objects.all().order_by('created_at')
+            page = self.paginate_queryset(obj)
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            return Response({"message": "List of POs retrieved successfully", "data": response.data}, 
+                        status=status.HTTP_200_OK)
+        else:
+            try:
+                obj = PurchaseOrder.objects.get(id=po_id)
+            except PurchaseOrder.DoesNotExist:
+                raise serializers.ValidationError({
+                "error_message": "Invalid PO ID supplied!."
+            })
+            serializer = self.get_serializer(obj)
+            return Response({"message": "PO retrieved successfully", "data": serializer.data}, 
+                        status=status.HTTP_200_OK)
+
+    def post(self,request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "PO added successfully", "data": serializer.data}, 
+                        status=status.HTTP_200_OK)
+
+    def put(self, request):
+        po_id = request.query_params.get('po_id')
+        try:
+            obj = PurchaseOrder.objects.get(id=po_id)
+        except PurchaseOrder.DoesNotExist:
+            raise serializers.ValidationError({
+                "error_message": "Invalid PO ID supplied!."
+            })
+        serializer = self.get_serializer(obj, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "PO updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        po_id = request.query_params.get('po_id')
+        try:
+            obj = PurchaseOrder.objects.get(id=po_id)
+        except PurchaseOrder.DoesNotExist:
+            raise serializers.ValidationError({
+                "error_message": "Invalid PO ID supplied!."
+            })
+        obj.delete()
+        return Response({"message": "PO deleted successfully"}, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 def vendor_performance(request, vendor_id):
