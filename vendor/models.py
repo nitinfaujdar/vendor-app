@@ -3,7 +3,14 @@ from django.utils import timezone
 
 # Create your models here.
 
-class Vendor(models.Model):
+class Common(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+class Vendor(Common, models.Model):
     name = models.CharField(max_length=255)
     contact_details = models.TextField()
     address = models.TextField()
@@ -13,7 +20,7 @@ class Vendor(models.Model):
     average_response_time = models.FloatField(default=0)
     fulfillment_rate = models.FloatField(default=0)
 
-class PurchaseOrder(models.Model):
+class PurchaseOrder(Common, models.Model):
     po_number = models.CharField(max_length=50, unique=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
     order_date = models.DateTimeField(default=timezone.now)
@@ -25,7 +32,7 @@ class PurchaseOrder(models.Model):
     issue_date = models.DateTimeField(default=timezone.now)
     acknowledgment_date = models.DateTimeField(null=True, blank=True)
 
-class HistoricalPerformance(models.Model):
+class HistoricalPerformance(Common, models.Model):
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
     date = models.DateTimeField(default=timezone.now)
     on_time_delivery_rate = models.FloatField()

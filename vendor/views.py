@@ -1,26 +1,72 @@
 from django.shortcuts import render
-from rest_framework import generics
+from rest_framework.generics import GenericAPIView
 from django.db.models import Avg, Count
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework import status
+
 from .models import *
 from .serializers import *
 
 # Create your views here.
 
-class VendorListView(generics.ListCreateAPIView):
-    queryset = Vendor.objects.all()
+class VendorListView(GenericAPIView):
     serializer_class = VendorSerializer
+    pagination_class = PageNumberPagination
 
-class VendorDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Vendor.objects.all()
-    serializer_class = VendorSerializer
+    def get(self,request):
+        vendor_id = request.query_params.get('vendor_id')
+        if vendor_id is None:
+            obj = Vendor.objects.all().order_by('created_at')
+            page = self.paginate_queryset(obj)
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            return Response({"message": "List of vendors retrieved successfully", "data": response.data}, 
+                        status=status.HTTP_200_OK)
+        else:
+            try:
+                obj = Vendor.objects.get(id=vendor_id)
+            except Vendor.DoesNotExist:
+                raise serializers.ValidationError({
+                "error_message": "Invalid Vendor ID supplied!."
+            })
+            serializer = self.get_serializer(obj)
+            return Response({"message": "List of vendors retrieved successfully", "data": serializer.data}, 
+                        status=status.HTTP_200_OK)
 
-class PurchaseOrderListView(generics.ListCreateAPIView):
-    queryset = PurchaseOrder.objects.all()
-    serializer_class = PurchaseOrderSerializer
+    def post(self,request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Vendor added successfully", "data": serializer.data}, 
+                        status=status.HTTP_200_OK)
 
-class PurchaseOrderDetailView(generics.RetrieveUpdateDestroyAPIView):
+    def put(self, request):
+        vendor_id = request.query_params.get('vendor_id')
+        try:
+            obj = Vendor.objects.get(id=vendor_id)
+        except Vendor.DoesNotExist:
+            raise serializers.ValidationError({
+                "error_message": "Invalid Vendor ID supplied!."
+            })
+        serializer = self.get_serializer(obj, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Vendor updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        vendor_id = request.query_params.get('vendor_id')
+        try:
+            obj = Vendor.objects.get(id=vendor_id)
+        except Vendor.DoesNotExist:
+            raise serializers.ValidationError({
+                "error_message": "Invalid Vendor ID supplied!."
+            })
+        obj.delete()
+        return Response({"message": "Vendor deleted successfully"}, status=status.HTTP_200_OK)
+
+class PurchaseOrderListView(GenericAPIView):
     queryset = PurchaseOrder.objects.all()
     serializer_class = PurchaseOrderSerializer
 

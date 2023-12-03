@@ -1,0 +1,3 @@
+assignment/__pycache__/*
+vendor/__pycache__/*
+vendor/migrations/__pycache__/*
