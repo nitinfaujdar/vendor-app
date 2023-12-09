@@ -18,8 +18,7 @@ class VendorListView(GenericAPIView):
     serializer_class = VendorSerializer
     pagination_class = PageNumberPagination
 
-    def get(self,request):
-        vendor_id = request.query_params.get('vendor_id')
+    def get(self,request, vendor_id):
         if vendor_id is None:
             obj = Vendor.objects.all().order_by('created_at')
             page = self.paginate_queryset(obj)
@@ -45,8 +44,7 @@ class VendorListView(GenericAPIView):
         return Response({"message": "Vendor added successfully", "data": serializer.data}, 
                         status=status.HTTP_200_OK)
 
-    def put(self, request):
-        vendor_id = request.query_params.get('vendor_id')
+    def put(self, request, vendor_id):
         try:
             obj = Vendor.objects.get(id=vendor_id)
         except Vendor.DoesNotExist:
@@ -58,8 +56,7 @@ class VendorListView(GenericAPIView):
         serializer.save()
         return Response({"message": "Vendor updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 
-    def delete(self, request):
-        vendor_id = request.query_params.get('vendor_id')
+    def delete(self, request, vendor_id):
         try:
             obj = Vendor.objects.get(id=vendor_id)
         except Vendor.DoesNotExist:
@@ -73,8 +70,7 @@ class PurchaseOrderListView(GenericAPIView):
     serializer_class = PurchaseOrderSerializer
     pagination_class = PageNumberPagination
 
-    def get(self,request):
-        po_id = request.query_params.get('po_id')
+    def get(self,request, po_id):
         if po_id is None:
             obj = PurchaseOrder.objects.all().order_by('created_at')
             page = self.paginate_queryset(obj)
@@ -100,8 +96,7 @@ class PurchaseOrderListView(GenericAPIView):
         return Response({"message": "PO added successfully", "data": serializer.data}, 
                         status=status.HTTP_200_OK)
 
-    def put(self, request):
-        po_id = request.query_params.get('po_id')
+    def put(self, request, po_id):
         try:
             obj = PurchaseOrder.objects.get(id=po_id)
         except PurchaseOrder.DoesNotExist:
@@ -113,8 +108,7 @@ class PurchaseOrderListView(GenericAPIView):
         serializer.save()
         return Response({"message": "PO updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 
-    def delete(self, request):
-        po_id = request.query_params.get('po_id')
+    def delete(self, request, po_id):
         try:
             obj = PurchaseOrder.objects.get(id=po_id)
         except PurchaseOrder.DoesNotExist:
